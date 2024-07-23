@@ -1,3 +1,4 @@
 name: "CodeQL config"
 packs:
-  - opengovsg/nextjs-custom-queries
+  javascript:
+    - opengovsg/nextjs-custom-queries
