@@ -2,3 +2,4 @@ name: "CodeQL config"
 packs:
   javascript:
     - opengovsg/nextjs-custom-queries
+    - opengovsg/react-custom-queries
