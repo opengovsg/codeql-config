@@ -3,3 +3,4 @@ packs:
   javascript:
     - opengovsg/nextjs-custom-queries
     - opengovsg/react-custom-queries
+    - opengovsg/javascript-custom-queries
