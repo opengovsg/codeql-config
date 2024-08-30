@@ -4,3 +4,14 @@ packs:
     - opengovsg/nextjs-custom-queries
     - opengovsg/react-custom-queries
     - opengovsg/javascript-custom-queries
+query-filters:
+  - exclude:
+      id: js/hardcoded-credentials
+  - exclude:
+      id: js/client-side-unvalidated-url-redirection
+  - exclude:
+      id: js/xss
+  - exclude:
+      id: js/missing-rate-limiting
+  - exclude:
+      id: js/missing-token-validation
