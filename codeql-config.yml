@@ -1,10 +1,10 @@
 name: "CodeQL config"
 packs:
   javascript:
-    - opengovsg/nextjs-custom-queries
-    - opengovsg/react-custom-queries
-    - opengovsg/javascript-custom-queries
-    - opengovsg/nestjs-custom-queries
+    - opengovsg/nextjs-custom-queries@1.0.1
+    - opengovsg/react-custom-queries@1.0.1
+    - opengovsg/javascript-custom-queries@1.0.3
+    - opengovsg/nestjs-custom-queries@1.0.0
 query-filters:
   - exclude:
       id: js/hardcoded-credentials
