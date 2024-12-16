@@ -13,7 +13,8 @@ query-filters:
   - exclude:
       id: js/missing-token-validation
 paths-ignore:
-  - '**/test*'
+  - '**/test/**'
+  - '**/tests/**'
   - '**/__test__/**'
   - '**/__tests__/**'
-  - '**/*test.*'
+  - '**/*.test.*'
