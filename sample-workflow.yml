@@ -1,0 +1,77 @@
+# OGP CodeQL Workflow
+# Copy this file to your repository at .github/workflows/codeql.yml
+#
+# To exclude specific rules for your project, create .github/codeql-config.yml
+# in your repository with contents like:
+#
+#   packs:
+#     javascript:
+#       - opengovsg/nextjs-custom-queries@1.0.1
+#       - opengovsg/react-custom-queries@1.0.1
+#       - opengovsg/javascript-custom-queries@1.0.3
+#       - opengovsg/nestjs-custom-queries@1.0.0
+#   query-filters:
+#     - exclude:
+#         id: my-rule/to-exclude
+#   paths-ignore:
+#     - '**/test/**'
+#     - '**/tests/**'
+#     - '**/__test__/**'
+#     - '**/__tests__/**'
+#     - '**/*.test.*'
+#
+# If no local config is found, the central config from
+# opengovsg/codeql-config/codeql-config.yml@prod is used.
+
+name: 'OGP CodeQL'
+
+on:
+  push:
+    branches: ['develop']
+  pull_request:
+    branches: ['develop']
+  schedule:
+    - cron: '0 10 * * *'
+
+jobs:
+  analyze:
+    name: Analyze (${{matrix.language}})
+    runs-on: ${{(matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest'}}
+    timeout-minutes: ${{(matrix.language == 'swift' && 120) || 360}}
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for local CodeQL config override
+        id: codeql-config
+        run: |
+          if [ -f ".github/codeql-config.yml" ]; then
+            echo "config-file=./.github/codeql-config.yml" >> "$GITHUB_OUTPUT"
+          else
+            echo "config-file=opengovsg/codeql-config/codeql-config.yml@prod" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{matrix.language}}
+          build-mode: ${{matrix.build-mode}}
+          config-file: ${{steps.codeql-config.outputs.config-file}}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{matrix.language}}'
