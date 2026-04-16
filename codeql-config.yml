@@ -1,7 +1,7 @@
 name: "CodeQL config"
 packs:
   actions:
-    - opengovsg/actions-custom-queries@1.0.1
+    - opengovsg/actions-custom-queries@1.0.2
   javascript:
     - opengovsg/nextjs-custom-queries@1.0.1
     - opengovsg/react-custom-queries@1.0.1
