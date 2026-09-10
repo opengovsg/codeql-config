@@ -1,0 +1,40 @@
+{
+  "_comment": "Deployment-gate configuration. The scan-language matrix is derived strictly from the packs: keys of codeql-config.yml via languageMap (a new pack language cannot be added without also gaining a floor + fixtures here, or the gate fails). Bumping a floor or expected rule id is a reviewed diff, never a magic number in a workflow.",
+  "languageMap": {
+    "javascript": "javascript-typescript",
+    "actions": "actions",
+    "python": "python",
+    "ruby": "ruby",
+    "go": "go",
+    "csharp": "csharp",
+    "cpp": "c-cpp",
+    "java": "java-kotlin",
+    "swift": "swift",
+    "rust": "rust"
+  },
+  "languages": {
+    "javascript-typescript": {
+      "queryCountFloor": 87,
+      "expectedRuleIds": [],
+      "badFixture": {
+        "pathContains": "gate/fixtures/javascript-typescript/bad",
+        "ruleId": "js/incomplete-url-substring-sanitization"
+      },
+      "goodFixture": {
+        "pathContains": "gate/fixtures/javascript-typescript/good"
+      }
+    },
+    "actions": {
+      "_comment": "Dormant until codeql-config.yml gains an actions: packs key (PR #19). Floor is 17 for the built-in Actions suite; raise to 20 once actions-custom-queries is pinned, and add the three custom rule ids to expectedRuleIds.",
+      "queryCountFloor": 17,
+      "expectedRuleIds": [],
+      "badFixture": {
+        "pathContains": "gate/fixtures/actions/bad",
+        "ruleId": "actions/unpinned-tag"
+      },
+      "goodFixture": {
+        "pathContains": "gate/fixtures/actions/good"
+      }
+    }
+  }
+}

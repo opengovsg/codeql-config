@@ -1,0 +1,11 @@
+# Deployment-gate known-good fixture (dormant until codeql-config.yml gains an
+# actions: packs key). The same step pinned to a full commit SHA — no
+# actions/unpinned-tag (or any other rule) should fire here.
+name: gate-fixture-pinned
+on: push
+permissions: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
