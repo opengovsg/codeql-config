@@ -1,16 +1,8 @@
 {
-  "_comment": "Deployment-gate configuration. The scan-language matrix is derived strictly from the packs: keys of codeql-config.yml via languageMap (a new pack language cannot be added without also gaining a floor + fixtures here, or the gate fails). Bumping a floor or expected rule id is a reviewed diff, never a magic number in a workflow.",
+  "_comment": "Deployment-gate configuration. The scan-language matrix is derived strictly from the packs: keys of codeql-config.yml via languageMap (a new pack language cannot be added without also gaining a floor + fixtures here, or the gate fails). Bumping a floor or expected rule id is a reviewed diff, never a magic number in a workflow. languageMap intentionally lists ONLY languages the derive step can build with build-mode: none; adding a compiled language means adding its map entry AND teaching derive-matrix.py the right build-mode — so the gate stays fail-closed on an unwired language.",
   "languageMap": {
     "javascript": "javascript-typescript",
-    "actions": "actions",
-    "python": "python",
-    "ruby": "ruby",
-    "go": "go",
-    "csharp": "csharp",
-    "cpp": "c-cpp",
-    "java": "java-kotlin",
-    "swift": "swift",
-    "rust": "rust"
+    "actions": "actions"
   },
   "languages": {
     "javascript-typescript": {

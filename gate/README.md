@@ -48,5 +48,8 @@ if the derivation or any language leg failed.
 ## Local checks
 
 - `python3 gate/derive-matrix.py` — prints the matrix it would emit.
+- `python3 gate/test_derive_matrix.py` — unit tests for the packs-key parser
+  (comments, inline values, quotes, empty keys — the shapes that could silently
+  drop a language and its coverage).
 - The scan itself only runs in CI (it needs the CodeQL CLI + the published
   packs). Tune floors and fixtures by reading the uploaded SARIF artifacts.
