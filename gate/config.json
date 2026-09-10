@@ -18,7 +18,7 @@
       ],
       "badFixture": {
         "pathContains": "gate/fixtures/javascript-typescript/bad",
-        "ruleId": "js/disabling-certificate-validation"
+        "ruleId": "javascript/no-root-cdn"
       },
       "goodFixture": {
         "pathContains": "gate/fixtures/javascript-typescript/good"
