@@ -15,10 +15,18 @@
   "languages": {
     "javascript-typescript": {
       "queryCountFloor": 87,
-      "expectedRuleIds": [],
+      "expectedRuleIds": [
+        "javascript/improper-domain-validation",
+        "javascript/no-raw-interpolation",
+        "javascript/no-root-cdn",
+        "nestjs/exception-filter-crash",
+        "nextjs/open-redirect",
+        "react/unsafe-dom-manipulation",
+        "react/unsafe-react-components"
+      ],
       "badFixture": {
         "pathContains": "gate/fixtures/javascript-typescript/bad",
-        "ruleId": "js/incomplete-url-substring-sanitization"
+        "ruleId": "js/disabling-certificate-validation"
       },
       "goodFixture": {
         "pathContains": "gate/fixtures/javascript-typescript/good"
