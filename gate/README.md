@@ -39,8 +39,12 @@ if the derivation or any language leg failed.
 ## Adding a language (e.g. when the `actions:` packs key lands)
 
 1. Add the `actions:` key to `codeql-config.yml` `packs:` (this is PR #19).
-2. `config.json` already carries the `actions` block (floor 17 for the built-in
-   suite; raise to 20 and populate `expectedRuleIds` once the custom pack pins).
+2. `config.json` already carries the `actions` block. Floor is **16, not 17**:
+   the built-in Actions suite resolves 17 queries, but this config's
+   `query-filters` exclude `actions/missing-workflow-permissions`, leaving 16
+   (measured by the `security-canaries` run against `codeql-config.yml@prod`).
+   Once the custom pack pins, raise to **19** (16 built-in + 3 custom) and
+   populate `expectedRuleIds`.
 3. Actions fixtures live under `gate/fixtures/actions/*/​.github/workflows/` —
    nested so the extractor sees them via `--source-root` while GitHub never runs
    them (only the repo-root `.github/workflows/` executes).
