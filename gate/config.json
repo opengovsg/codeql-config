@@ -1,0 +1,26 @@
+{
+  "_comment": "Floors and expectations for the deployment gate; see gate/README.md. The scan matrix is derived from codeql-config.yml's packs: keys via languageMap, so a new pack language fails the gate until it gains a block here. languageMap lists only languages that build with build-mode: none.",
+  "languageMap": {
+    "javascript": "javascript-typescript",
+    "actions": "actions"
+  },
+  "languages": {
+    "javascript-typescript": {
+      "queryCountFloor": 87,
+      "expectedRuleIds": [
+        "javascript/improper-domain-validation",
+        "javascript/no-raw-interpolation",
+        "javascript/no-root-cdn",
+        "nestjs/exception-filter-crash",
+        "nextjs/open-redirect",
+        "react/unsafe-dom-manipulation",
+        "react/unsafe-react-components"
+      ]
+    },
+    "actions": {
+      "_comment": "Dormant until codeql-config.yml gains an actions: packs key (PR #19). Floor is 16, NOT 17: the built-in suite resolves 17 but this config's query-filters exclude actions/missing-workflow-permissions. Do not 'fix' it back to 17. When the custom pack pins, raise to 19 (16 + 3 custom) and list those 3 ids in expectedRuleIds.",
+      "queryCountFloor": 16,
+      "expectedRuleIds": []
+    }
+  }
+}
