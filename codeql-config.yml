@@ -15,6 +15,7 @@ query-filters:
   - exclude:
       id: actions/missing-workflow-permissions
 paths-ignore:
+  - '**/*.ts'
   - '**/test/**'
   - '**/tests/**'
   - '**/__test__/**'
