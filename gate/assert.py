@@ -4,15 +4,17 @@
 Usage: assert.py <scan-language> <sarif-file>
 
 Reads gate/config.json for the language's query-count floor, expected custom
-rule ids, and scanned-file floor, then checks them against the SARIF produced by
-the scan of this commit (no upload, no baseline filtering — everything is read
-straight from the run's own output). Exits non-zero on any failure.
+rule ids, then checks them against the SARIF produced by the scan of this commit
+(no upload, no baseline filtering — everything is read straight from the run's
+own output). Exits non-zero on any failure.
 
-The three checks map onto the silent failure modes this config can cause:
+The checks map onto the silent failure modes this config can cause:
   - query count below floor      -> query-filters over-excluding
   - expected rule id missing     -> a pack that installs but skips its queries,
                                     or a CLI bump that dropped it
-  - zero files scanned           -> paths-ignore swallowing the scan
+A paths-ignore that guts the scan needs no assertion here: this repo has a single
+JS/TS source file, so excluding it makes CodeQL itself fail loudly ("no source
+code seen", exit 32) before any assertion runs. Measured, not assumed.
 Whether an individual query is any good is a question about the QUERY, tested by
 codeql-pack's unit tests and fixtures — deliberately not duplicated here.
 
@@ -40,17 +42,6 @@ def loaded_rule_ids(sarif):
     return ids
 
 
-def scanned_files(sarif):
-    """Files the scan actually covered, per the SARIF artifact inventory."""
-    uris = set()
-    for run in sarif.get("runs", []):
-        for art in run.get("artifacts", []) or []:
-            uri = art.get("location", {}).get("uri")
-            if uri:
-                uris.add(uri)
-    return uris
-
-
 def main():
     if len(sys.argv) != 3:
         sys.exit("usage: assert.py <scan-language> <sarif-file>")
@@ -63,7 +54,6 @@ def main():
 
     sarif = json.load(open(sarif_path))
     rule_ids = loaded_rule_ids(sarif)
-    files = scanned_files(sarif)
 
     checks = []  # (ok, message)
 
@@ -74,15 +64,6 @@ def main():
 
     for rid in lang.get("expectedRuleIds", []):
         checks.append((rid in rule_ids, f"expected rule id loaded: {rid}"))
-
-    file_floor = lang["scannedFilesFloor"]
-    checks.append(
-        (
-            len(files) >= file_floor,
-            f"scanned-files {len(files)} >= floor {file_floor} "
-            f"(guards against paths-ignore swallowing the scan)",
-        )
-    )
 
     passed = all(ok for ok, _ in checks)
     lines = [f"### Deployment gate: {language} — {'PASS' if passed else 'FAIL'}", ""]

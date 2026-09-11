@@ -17,9 +17,11 @@ change ships to every consumer.
 3. **Expected custom rule ids** — the pinned packs' rule ids must appear in the
    loaded set. Catches a pack that installs but silently skips its queries, and
    a CLI bump that drops one.
-4. **Scanned-file floor** — the SARIF's artifact inventory must list at least
-   `scannedFilesFloor` files. Catches `paths-ignore` swallowing the scan, which
-   leaves the query count untouched and is otherwise invisible.
+
+A `paths-ignore` that guts the scan needs no assertion: this repo has a single
+JS/TS source file, so excluding it makes CodeQL itself fail loudly ("no source
+code seen", exit 32) before any assertion runs. Measured on two RED branches,
+not assumed — an assertion that can never fire is worse than no assertion.
 
 `config.json` is the single reviewed surface for all floors and expectations —
 bumping a floor is a diff in a PR, never a magic number in the workflow.
@@ -44,7 +46,7 @@ if the derivation or any language leg failed.
 1. Edit `gate/config.json`.
 2. Open a PR; the gate re-runs and either confirms or rejects the new floor.
 3. The SARIF for each leg is uploaded as a `sarif-<language>` artifact — download
-   it to read the exact loaded rule ids and scanned files.
+   it to read the exact loaded rule ids.
 
 ## Adding a language (e.g. when the `actions:` packs key lands)
 

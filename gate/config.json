@@ -15,14 +15,12 @@
         "nextjs/open-redirect",
         "react/unsafe-dom-manipulation",
         "react/unsafe-react-components"
-      ],
-      "scannedFilesFloor": 4
+      ]
     },
     "actions": {
       "_comment": "Dormant until codeql-config.yml gains an actions: packs key (PR #19). Floor is 16, NOT 17: the built-in Actions suite resolves 17 queries but this config's query-filters exclude actions/missing-workflow-permissions, leaving 16 (measured against codeql-config.yml@prod on CLI 2.27.0 / actions-queries 0.6.35 by the canary run). Do not 'fix' this back to 17. Once actions-custom-queries pins (PR #19), raise to 19 (16 built-in + 3 custom) and add the 3 custom rule ids to expectedRuleIds.",
       "queryCountFloor": 16,
-      "expectedRuleIds": [],
-      "scannedFilesFloor": 1
+      "expectedRuleIds": []
     }
   }
 }
