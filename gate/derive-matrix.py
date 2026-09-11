@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-"""Derive the CodeQL scan-language matrix strictly from the packs: keys of
-codeql-config.yml, mapped through gate/config.json's languageMap.
+"""Derive the scan-language matrix from codeql-config.yml's packs: keys.
 
-Emits `matrix=<json>` to $GITHUB_OUTPUT (or stdout when run locally). Fails if a
-packs key has no languageMap entry or no per-language floor block, so a new pack
-language cannot be added without also gaining a test in the gate.
+Emits `matrix=<json>` to $GITHUB_OUTPUT (or stdout locally). Fails if a packs key
+has no languageMap entry or floor block in gate/config.json, so a new language
+cannot ship without a test. See gate/README.md.
 
-Parses the config with PyYAML (preinstalled on ubuntu-latest runners) rather
-than a hand-rolled scanner — the fail-closed key->floor check below is the part
-that matters; YAML edge cases are PyYAML's problem, not ours.
+Python, not Node: this must parse YAML, and PyYAML ships on the runner whereas
+Node has no stdlib YAML and would need an npm dependency.
 """
 import json
 import os

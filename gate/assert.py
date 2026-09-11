@@ -1,24 +1,9 @@
 #!/usr/bin/env python3
-"""Assert a CodeQL SARIF from THIS run meets the deployment-gate floors.
+"""Assert a scan's SARIF meets the floors in gate/config.json. See gate/README.md.
 
 Usage: assert.py <scan-language> <sarif-file>
 
-Reads gate/config.json for the language's query-count floor, expected custom
-rule ids, then checks them against the SARIF produced by the scan of this commit
-(no upload, no baseline filtering — everything is read straight from the run's
-own output). Exits non-zero on any failure.
-
-The checks map onto the silent failure modes this config can cause:
-  - query count below floor      -> query-filters over-excluding
-  - expected rule id missing     -> a pack that installs but skips its queries,
-                                    or a CLI bump that dropped it
-A paths-ignore that guts the scan needs no assertion here: this repo has a single
-JS/TS source file, so excluding it makes CodeQL itself fail loudly ("no source
-code seen", exit 32) before any assertion runs. Measured, not assumed.
-Whether an individual query is any good is a question about the QUERY, tested by
-codeql-pack's unit tests and fixtures — deliberately not duplicated here.
-
-Stdlib only.
+Reads the SARIF of this run directly, so nothing is baseline-filtered.
 """
 import json
 import os
