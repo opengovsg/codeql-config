@@ -1,5 +1,5 @@
 {
-  "_comment": "Deployment-gate configuration. The scan-language matrix is derived strictly from the packs: keys of codeql-config.yml via languageMap (a new pack language cannot be added without also gaining a floor + fixtures here, or the gate fails). Bumping a floor or expected rule id is a reviewed diff, never a magic number in a workflow. languageMap intentionally lists ONLY languages the derive step can build with build-mode: none; adding a compiled language means adding its map entry AND teaching derive-matrix.py the right build-mode — so the gate stays fail-closed on an unwired language.",
+  "_comment": "Deployment-gate configuration. The scan-language matrix is derived strictly from the packs: keys of codeql-config.yml via languageMap (a new pack language cannot be added without also gaining a floor block here, or the gate fails). Bumping a floor or expected rule id is a reviewed diff, never a magic number in a workflow. languageMap intentionally lists ONLY languages the derive step can build with build-mode: none; adding a compiled language means adding its map entry AND teaching derive-matrix.py the right build-mode — so the gate stays fail-closed on an unwired language.",
   "languageMap": {
     "javascript": "javascript-typescript",
     "actions": "actions"
@@ -16,25 +16,13 @@
         "react/unsafe-dom-manipulation",
         "react/unsafe-react-components"
       ],
-      "badFixture": {
-        "pathContains": "gate/fixtures/javascript-typescript/bad",
-        "ruleId": "javascript/no-root-cdn"
-      },
-      "goodFixture": {
-        "pathContains": "gate/fixtures/javascript-typescript/good"
-      }
+      "scannedFilesFloor": 1
     },
     "actions": {
-      "_comment": "Dormant until codeql-config.yml gains an actions: packs key (PR #19). Floor is 16, NOT 17: the built-in Actions suite resolves 17 queries but this config's query-filters exclude actions/missing-workflow-permissions, leaving 16 (measured against codeql-config.yml@prod on CLI 2.27.0 / actions-queries 0.6.35 by the security-canaries run). Do not 'fix' this back to 17. Once actions-custom-queries pins (PR #19), raise to 19 (16 built-in + 3 custom) and add the 3 custom rule ids to expectedRuleIds.",
+      "_comment": "Dormant until codeql-config.yml gains an actions: packs key (PR #19). Floor is 16, NOT 17: the built-in Actions suite resolves 17 queries but this config's query-filters exclude actions/missing-workflow-permissions, leaving 16 (measured against codeql-config.yml@prod on CLI 2.27.0 / actions-queries 0.6.35 by the canary run). Do not 'fix' this back to 17. Once actions-custom-queries pins (PR #19), raise to 19 (16 built-in + 3 custom) and add the 3 custom rule ids to expectedRuleIds.",
       "queryCountFloor": 16,
       "expectedRuleIds": [],
-      "badFixture": {
-        "pathContains": "gate/fixtures/actions/bad",
-        "ruleId": "actions/unpinned-tag"
-      },
-      "goodFixture": {
-        "pathContains": "gate/fixtures/actions/good"
-      }
+      "scannedFilesFloor": 1
     }
   }
 }

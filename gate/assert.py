@@ -3,10 +3,18 @@
 
 Usage: assert.py <scan-language> <sarif-file>
 
-Reads gate/config.json for the language's floor, expected custom rule ids, and
-known-bad / known-good fixture expectations, then checks them against the SARIF
-produced by the scan of this commit (no upload, no baseline filtering — findings
-are read straight from the run's own output). Exits non-zero on any failure.
+Reads gate/config.json for the language's query-count floor, expected custom
+rule ids, and scanned-file floor, then checks them against the SARIF produced by
+the scan of this commit (no upload, no baseline filtering — everything is read
+straight from the run's own output). Exits non-zero on any failure.
+
+The three checks map onto the silent failure modes this config can cause:
+  - query count below floor      -> query-filters over-excluding
+  - expected rule id missing     -> a pack that installs but skips its queries,
+                                    or a CLI bump that dropped it
+  - zero files scanned           -> paths-ignore swallowing the scan
+Whether an individual query is any good is a question about the QUERY, tested by
+codeql-pack's unit tests and fixtures — deliberately not duplicated here.
 
 Stdlib only.
 """
@@ -32,26 +40,15 @@ def loaded_rule_ids(sarif):
     return ids
 
 
-def results(sarif):
-    """Yield (rule_id, [location-uris]) for every result in the SARIF."""
+def scanned_files(sarif):
+    """Files the scan actually covered, per the SARIF artifact inventory."""
+    uris = set()
     for run in sarif.get("runs", []):
-        rules = run.get("tool", {}).get("driver", {}).get("rules", []) or []
-        for res in run.get("results", []) or []:
-            rid = res.get("ruleId")
-            if rid is None and "ruleIndex" in res and res["ruleIndex"] < len(rules):
-                rid = rules[res["ruleIndex"]].get("id")
-            if rid is None:
-                rid = res.get("rule", {}).get("id")
-            uris = []
-            for loc in res.get("locations", []) or []:
-                uri = (
-                    loc.get("physicalLocation", {})
-                    .get("artifactLocation", {})
-                    .get("uri")
-                )
-                if uri:
-                    uris.append(uri)
-            yield rid, uris
+        for art in run.get("artifacts", []) or []:
+            uri = art.get("location", {}).get("uri")
+            if uri:
+                uris.add(uri)
+    return uris
 
 
 def main():
@@ -66,51 +63,24 @@ def main():
 
     sarif = json.load(open(sarif_path))
     rule_ids = loaded_rule_ids(sarif)
-    all_results = list(results(sarif))
+    files = scanned_files(sarif)
 
     checks = []  # (ok, message)
 
-    # (a) query-count floor
     floor = lang["queryCountFloor"]
     checks.append(
         (len(rule_ids) >= floor, f"query-count {len(rule_ids)} >= floor {floor}")
     )
 
-    # (b) expected custom rule ids present in the loaded set
     for rid in lang.get("expectedRuleIds", []):
         checks.append((rid in rule_ids, f"expected rule id loaded: {rid}"))
 
-    # (c) known-bad fixture produces >=1 finding for its named rule
-    bad = lang["badFixture"]
-    bad_hits = [
-        u
-        for rid, uris in all_results
-        if rid == bad["ruleId"]
-        for u in uris
-        if bad["pathContains"] in u
-    ]
+    file_floor = lang["scannedFilesFloor"]
     checks.append(
         (
-            len(bad_hits) >= 1,
-            f"known-bad fixture fires {bad['ruleId']} "
-            f"({len(bad_hits)} finding(s) under {bad['pathContains']})",
-        )
-    )
-
-    # (c) known-good fixture stays completely silent
-    good = lang["goodFixture"]
-    good_hits = [
-        (rid, u)
-        for rid, uris in all_results
-        for u in uris
-        if good["pathContains"] in u
-    ]
-    checks.append(
-        (
-            len(good_hits) == 0,
-            f"known-good fixture silent (0 findings under {good['pathContains']}"
-            + (f"; got {good_hits}" if good_hits else "")
-            + ")",
+            len(files) >= file_floor,
+            f"scanned-files {len(files)} >= floor {file_floor} "
+            f"(guards against paths-ignore swallowing the scan)",
         )
     )
 

@@ -10,18 +10,28 @@ change ships to every consumer.
    `packs:` keys and maps them to scan languages via `config.json`'s
    `languageMap`. A packs key with no `languageMap` entry, or no per-language
    block in `config.json`, fails the `Derive matrix` job. You cannot add a pack
-   language without also giving it a floor and fixtures here.
+   language without also giving it a floor here.
 2. **Query-count floor** — `assert.py` counts the rules the scan actually loaded
    (from this run's SARIF, not a baseline-filtered alert count) and fails below
-   `queryCountFloor`. This is the R1 silent-zero-coverage guard.
-3. **Expected custom rule ids** — when a custom pack is pinned, its rule ids must
-   appear in the loaded set (`expectedRuleIds`).
-4. **Fixture behaviour** — a known-bad fixture in `gate/fixtures/<lang>/bad/`
-   must produce ≥1 finding for its named rule, and the known-good twin in
-   `good/` must stay completely silent.
+   `queryCountFloor`. Catches `query-filters` over-excluding.
+3. **Expected custom rule ids** — the pinned packs' rule ids must appear in the
+   loaded set. Catches a pack that installs but silently skips its queries, and
+   a CLI bump that drops one.
+4. **Scanned-file floor** — the SARIF's artifact inventory must list at least
+   `scannedFilesFloor` files. Catches `paths-ignore` swallowing the scan, which
+   leaves the query count untouched and is otherwise invisible.
 
 `config.json` is the single reviewed surface for all floors and expectations —
 bumping a floor is a diff in a PR, never a magic number in the workflow.
+
+## Scope — what this gate does NOT test
+
+Whether an individual query is any good — does it fire on bad code, does it stay
+quiet on good code — is a question about the **query**, and it is answered in
+`codeql-pack` by its CodeQL unit tests (`<pack>/tests/`) and its positive and
+negative fixtures (`scripts/preview`). This repo owns the **config**, so it
+asserts only that the config produces live coverage. Deliberately no fixtures
+here: they would be a third copy of an assertion that already has a home.
 
 ## The required check
 
@@ -31,10 +41,10 @@ if the derivation or any language leg failed.
 
 ## Bumping a floor / adding expected rule ids
 
-1. Edit `gate/config.json` (`queryCountFloor` and/or `expectedRuleIds`).
+1. Edit `gate/config.json`.
 2. Open a PR; the gate re-runs and either confirms or rejects the new floor.
 3. The SARIF for each leg is uploaded as a `sarif-<language>` artifact — download
-   it to read the exact loaded rule ids and finding locations.
+   it to read the exact loaded rule ids and scanned files.
 
 ## Adding a language (e.g. when the `actions:` packs key lands)
 
@@ -42,15 +52,12 @@ if the derivation or any language leg failed.
 2. `config.json` already carries the `actions` block. Floor is **16, not 17**:
    the built-in Actions suite resolves 17 queries, but this config's
    `query-filters` exclude `actions/missing-workflow-permissions`, leaving 16
-   (measured by the `security-canaries` run against `codeql-config.yml@prod`).
-   Once the custom pack pins, raise to **19** (16 built-in + 3 custom) and
-   populate `expectedRuleIds`.
-3. Actions fixtures live under `gate/fixtures/actions/*/​.github/workflows/` —
-   nested so the extractor sees them via `--source-root` while GitHub never runs
-   them (only the repo-root `.github/workflows/` executes).
+   (measured by the canary run against `codeql-config.yml@prod`). Once the
+   custom pack pins, raise to **19** (16 built-in + 3 custom) and populate
+   `expectedRuleIds`.
 
 ## Local checks
 
 - `python3 gate/derive-matrix.py` — prints the matrix it would emit.
 - The scan itself only runs in CI (it needs the CodeQL CLI + the published
-  packs). Tune floors and fixtures by reading the uploaded SARIF artifacts.
+  packs). Tune floors by reading the uploaded SARIF artifacts.
