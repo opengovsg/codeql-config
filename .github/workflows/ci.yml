@@ -6,10 +6,29 @@ on:
       - '**'
 
 jobs:
+  # Derive the scan-language matrix strictly from codeql-config.yml's packs:
+  # keys, so a new pack language cannot be added without also gaining a floor
+  # and fixtures in gate/config.json.
+  setup:
+    name: Derive matrix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.derive.outputs.matrix }}
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Derive matrix from packs keys
+        id: derive
+        run: python3 gate/derive-matrix.py
+
   analyze:
-    name: Analyze (${{matrix.language}})
-    runs-on: ${{(matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest'}}
-    timeout-minutes: ${{(matrix.language == 'swift' && 120) || 360}}
+    name: Analyze (${{ matrix.language }})
+    needs: setup
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
       security-events: write
       packages: read
@@ -18,25 +37,55 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - language: javascript-typescript
-            build-mode: none
-          - language: actions
-            build-mode: none
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
     steps:
       - name: Checkout current repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3.38.0
         with:
-          languages: ${{matrix.language}}
-          build-mode: ${{matrix.build-mode}}
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           config-file: ./codeql-config.yml
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3.38.0
         with:
-          category: '/language:${{matrix.language}}'
+          category: '/language:${{ matrix.language }}'
           upload: 'never'
+          output: sarif-results
+
+      - name: Assert deployment-gate floors
+        run: |
+          sarif=$(ls sarif-results/*.sarif | head -1)
+          echo "Asserting ${{ matrix.language }} against $sarif"
+          python3 gate/assert.py "${{ matrix.language }}" "$sarif"
+
+      - name: Upload SARIF for review
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: sarif-${{ matrix.language }}
+          path: sarif-results/*.sarif
+          if-no-files-found: warn
+
+  # Stable-named aggregation job. Make THIS the required status check on prod:
+  # its name does not change with the derived matrix, and it is red if any
+  # language leg (or the derivation) failed.
+  gate:
+    name: Deployment gate
+    needs: [setup, analyze]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Confirm all language legs passed
+        run: |
+          echo "setup=${{ needs.setup.result }} analyze=${{ needs.analyze.result }}"
+          if [ "${{ needs.setup.result }}" != "success" ] || [ "${{ needs.analyze.result }}" != "success" ]; then
+            echo "Deployment gate FAILED"
+            exit 1
+          fi
+          echo "Deployment gate PASSED"

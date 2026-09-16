@@ -1,0 +1,6 @@
+# Local CodeQL scratch (databases, downloaded packs) — never committed.
+cache/
+
+# Python bytecode
+__pycache__/
+*.pyc
