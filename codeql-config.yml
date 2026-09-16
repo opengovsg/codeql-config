@@ -5,6 +5,8 @@ packs:
     - opengovsg/react-custom-queries@1.0.1
     - opengovsg/javascript-custom-queries@1.0.3
     - opengovsg/nestjs-custom-queries@1.0.0
+  actions:
+    - opengovsg/actions-custom-queries@1.1.2
 query-filters:
   - exclude:
       id: js/hardcoded-credentials

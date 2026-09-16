@@ -18,9 +18,13 @@
       ]
     },
     "actions": {
-      "_comment": "Dormant until codeql-config.yml gains an actions: packs key (PR #19). Floor is 16, NOT 17: the built-in suite resolves 17 but this config's query-filters exclude actions/missing-workflow-permissions. Do not 'fix' it back to 17. When the custom pack pins, raise to 19 (16 + 3 custom) and list those 3 ids in expectedRuleIds.",
-      "queryCountFloor": 16,
-      "expectedRuleIds": []
+      "_comment": "Floor 19 = 16 built-in + 3 from actions-custom-queries. The built-in suite resolves 17, but this config's query-filters exclude actions/missing-workflow-permissions, leaving 16 \u2014 do not 'fix' that 16 back to 17.",
+      "queryCountFloor": 19,
+      "expectedRuleIds": [
+        "actions/unfrozen-package-install",
+        "actions/unpinned-global-install",
+        "actions/unvetted-package-exec"
+      ]
     }
   }
 }
